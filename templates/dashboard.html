@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Welcome, {{ user.first_name|default:user.username }}</h2>
+            <a href="{% url 'logout' %}" class="btn btn-secondary">Logout</a>
+        </div>
+        
+        <div class="card mb-4">
+            <div class="card-header">
+                User Information
+            </div>
+            <div class="card-body">
+                <p><strong>Username:</strong> {{ user.username }}</p>
+                <p><strong>Name:</strong> {{ user.first_name }} {{ user.last_name }}</p>
+                <p><strong>Role:</strong> {{ user.user_role }}</p>
+                <p><strong>Outstanding Balance:</strong> ${{ user.outstanding_balance }}</p>
+            </div>
+        </div>
+    </div>
+{% endblock %}
