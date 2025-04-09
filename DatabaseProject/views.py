@@ -1,7 +1,8 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django import forms
-from .models import Users
+from django.db import models
+from .models import Users, Books
 
 # Define forms
 class LoginForm(forms.Form):
@@ -132,3 +133,16 @@ def dashboard_view(request):
 def logout_view(request):
     request.session.flush()
     return redirect('login')
+
+def search_books(request):
+    query = request.GET.get('query', '')
+    show_all = request.GET.get('show_all')
+    books = []
+
+    if show_all:
+        books = Books.objects.all().order_by('title')
+    elif query:
+        books = Books.objects.filter(
+            models.Q(title__icontains=query) | models.Q(author__icontains=query)
+        )
+    return render(request, 'search.html', {'books': books, 'query': query})

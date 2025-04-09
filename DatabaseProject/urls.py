@@ -25,4 +25,5 @@ urlpatterns = [
     path('dashboard/', views.dashboard_view, name='dashboard'),  # Dashboard after login
     path('logout/', views.logout_view, name='logout'),  # Logout functionality
     path('admin/', admin.site.urls),
+    path('search/', views.search_books, name='search_books'), # search for books page
 ]
