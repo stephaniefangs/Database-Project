@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block title %}Search Books{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Search for Books</h2>
+        <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">Back to Dashboard</a>
+    </div>
+
+    <form method="GET" action="{% url 'search_books' %}">
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <input type="text" class="form-control" name="query" placeholder="Enter title or author" value="{{ query }}">
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-primary">Search</button>
+                <a href="{% url 'search_books' %}?show_all=1" class="btn btn-info ms-2">Show All Books A–Z</a>
+            </div>
+        </div>
+    </form>
+
+    {% if books %}
+        <h4 class="mt-4">Results</h4>
+        <ul class="list-group mt-3">
+            {% for book in books %}
+                <li class="list-group-item">
+                    <strong>{{ book.title }}</strong> by {{ book.author }} ({{ book.publish_year }})<br>
+                    <em>{{ book.genre }}</em>
+                    <p>Summary: {{ book.summary }}</p>
+                </li>
+            {% endfor %}
+        </ul>
+    {% elif query or request.GET.show_all %}
+        <p class="mt-4 text-muted">No books found.</p>
+    {% endif %}
+</div>
+{% endblock %}

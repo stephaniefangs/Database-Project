@@ -6,9 +6,12 @@
     <div class="container">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2>Welcome, {{ user.first_name|default:user.username }}</h2>
-            <a href="{% url 'logout' %}" class="btn btn-secondary">Logout</a>
+            <div>
+                <a href="{% url 'search_books' %}" class="btn btn-primary me-2">Search for Books</a>
+                <a href="{% url 'logout' %}" class="btn btn-secondary">Logout</a>
+            </div>
         </div>
-        
+
         <div class="card mb-4">
             <div class="card-header">
                 User Information
