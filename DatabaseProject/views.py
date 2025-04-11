@@ -108,13 +108,14 @@ def login_view(request):
             try:
                 # Direct password comparison (need to change when password is hashed)
                 # user = Users.objects.get(username=username, password=password)
-                user = Users.objects.raw("SELECT * FROM Users WHERE username = %s AND password = %s", [username, password])
+                user = Users.objects.raw("SELECT * FROM Users WHERE username = %s AND password = %s", [username, password])[0]
+
                 # Store user info in session
                 request.session['user_id'] = user.user_id
                 request.session['username'] = user.username
                 request.session['user_role'] = user.user_role
                 return redirect('dashboard')
-            except Users.DoesNotExist:
+            except:
                 messages.error(request, 'Invalid username or password')
     else:
         form = LoginForm()
