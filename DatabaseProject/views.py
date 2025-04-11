@@ -139,7 +139,7 @@ def register_view(request):
                 return render(request, 'register.html', {'form': form})
 
             # Check if username already exists
-            if Users.objects.filter(username=username).exists():
+            if len(Users.objects.raw("SELECT * FROM Users WHERE username = %s", [username])) > 0:
                 messages.error(request, 'Username already exists')
                 return render(request, 'register.html', {'form': form})
 
@@ -179,7 +179,7 @@ def add_book_view(request):
             genre = form.cleaned_data['genre']
             publish_year = form.cleaned_data['publish_year']
 
-            if Books.objects.filter(title=title).exists():
+            if len(Books.objects.raw("SELECT * FROM Books WHERE title = %s AND author = %s AND publish_year = %s)", [title, author, publish_year])) > 0:
                 messages.error(request, 'The book is already in the library.')
                 return render(request, 'add_book.html', {'form': form})
 
