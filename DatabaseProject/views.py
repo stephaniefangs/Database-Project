@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django import forms
-from django.db import models
+from django.db import models, connection
 from .models import Users, Books
 
 
@@ -155,7 +155,11 @@ def register_view(request):
             # )
             # user.save()
 
-            Users.objects.raw("INSERT INTO Users(username, password, first_name, last_name, phone_number, user_role, outstanding_balance) VALUES (%s, %s, %s, %s, %s, 'registered', 0.00)", [username, password, first_name, last_name, phone_number])
+            # Users.objects.raw("INSERT INTO Users(username, password, first_name, last_name, phone_number, user_role, outstanding_balance) VALUES (%s, %s, %s, %s, %s, 'registered', 0.00)", [username, password, first_name, last_name, phone_number])
+            # Users.objects.raw("COMMIT")
+
+            with connection.cursor() as cursor:
+                cursor.execute("INSERT INTO Users(username, password, first_name, last_name, phone_number, user_role, outstanding_balance) VALUES (%s, %s, %s, %s, %s, 'registered', 0.00)", [username, password, first_name, last_name, phone_number])
 
             messages.success(request, 'Account created successfully. Please log in.')
             return redirect('login')
@@ -188,7 +192,10 @@ def add_book_view(request):
             # )
             # book.save()
             
-            Books.objects.raw("INSERT INTO Books(title, author, summary, genre, publish_year) VALUES (%s, %s, %s, %s, %s)", [title, author, summary, genre, publish_year])
+            # Books.objects.raw("INSERT INTO Books(title, author, summary, genre, publish_year) VALUES (%s, %s, %s, %s, %s)", [title, author, summary, genre, publish_year])
+
+            with connection.cursor() as cursor:
+                cursor.execute("INSERT INTO Books(title, author, summary, genre, publish_year) VALUES (%s, %s, %s, %s, %s)", [title, author, summary, genre, publish_year])
 
 
             messages.success(request, 'Book added successfully.')
