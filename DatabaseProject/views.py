@@ -224,5 +224,6 @@ def search_books(request):
         # books = Books.objects.filter(
         #     models.Q(title__icontains=query) | models.Q(author__icontains=query)
         # )
-        books = Books.objects.raw("SELECT * FROM Books WHERE title LIKE %%%s%% OR author LIKE %%%s%%", [query, query])
+        pattern = f"%{query}%"
+        books = Books.objects.raw("SELECT * FROM Books WHERE title LIKE %s OR author LIKE %s", [pattern, pattern])
     return render(request, 'search.html', {'books': books, 'query': query})
