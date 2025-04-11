@@ -2,35 +2,37 @@
 {% block title %}Add Book{% endblock %}
 
 {% block content %}
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="text-center mb-4">Add Book</h2>
-        <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">Back to Dashboard</a>
-    </div>
-    <form method="post">
-        {% csrf_token %}
-        <div class="mb-3">
-            <label for="id_title" class="form-label">Title *</label>
-            {{ form.title }}
+    <div class="form-container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="text-center mb-4">Add Book</h2>
+            <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">Back to Dashboard</a>
         </div>
-        <div class="mb-3">
-            <label for="id_author" class="form-label">Author *</label>
-            {{ form.author }}
+        <form method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label for="id_title" class="form-label">Title *</label>
+                {{ form.title }}
+            </div>
+            <div class="mb-3">
+                <label for="id_author" class="form-label">Author *</label>
+                {{ form.author }}
+            </div>
+            <div class="mb-3">
+                <label for="id_summary" class="form-label">Summary</label>
+                {{ form.summary }}
+            </div>
+            <div class="mb-3">
+                <label for="id_genre" class="form-label">Genre</label>
+                {{ form.genre }}
+            </div>
+            <div class="mb-3">
+                <label for="id_publish_year" class="form-label">Publish Year *</label>
+                {{ form.publish_year }}
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Register</button>
+        </form>
+        <div class="text-center mt-2">
+                <small class="text-muted">* Required fields</small>
         </div>
-        <div class="mb-3">
-            <label for="id_summary" class="form-label">Summary</label>
-            {{ form.summary }}
-        </div>
-        <div class="mb-3">
-            <label for="id_genre" class="form-label">Genre</label>
-            {{ form.genre }}
-        </div>
-        <div class="mb-3">
-            <label for="id_publish_year" class="form-label">Publish Year *</label>
-            {{ form.publish_year }}
-        </div>
-        <button type="submit" class="btn btn-primary w-100">Register</button>
-    </form>
-    <div class="text-center mt-2">
-            <small class="text-muted">* Required fields</small>
     </div>
 {% endblock %}
