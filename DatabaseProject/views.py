@@ -143,16 +143,18 @@ def register_view(request):
                 return render(request, 'register.html', {'form': form})
 
             # Create new user
-            user = Users(
-                username=username,
-                password=password,
-                first_name=first_name,
-                last_name=last_name,
-                phone_number=phone_number,
-                user_role='registered',
-                outstanding_balance=0.00
-            )
-            user.save()
+            # user = Users(
+            #     username=username,
+            #     password=password,
+            #     first_name=first_name,
+            #     last_name=last_name,
+            #     phone_number=phone_number,
+            #     user_role='registered',
+            #     outstanding_balance=0.00
+            # )
+            # user.save()
+
+            Users.objects.raw("INSERT INTO Users(username, password, first_name, last_name, phone_number, user_role, outstanding_balance) VALUES (%s, %s, %s, %s, %s, 'registered', 0.00)", [username, password, first_name, last_name, phone_number])
 
             messages.success(request, 'Account created successfully. Please log in.')
             return redirect('login')
