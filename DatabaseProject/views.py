@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django import forms
-from django.db import models
+from django.db import models, connection
 from .models import Users, Books
 
 
@@ -107,13 +107,15 @@ def login_view(request):
 
             try:
                 # Direct password comparison (need to change when password is hashed)
-                user = Users.objects.get(username=username, password=password)
+                # user = Users.objects.get(username=username, password=password)
+                user = Users.objects.raw("SELECT * FROM Users WHERE username = %s AND password = %s", [username, password])[0]
+
                 # Store user info in session
                 request.session['user_id'] = user.user_id
                 request.session['username'] = user.username
                 request.session['user_role'] = user.user_role
                 return redirect('dashboard')
-            except Users.DoesNotExist:
+            except:
                 messages.error(request, 'Invalid username or password')
     else:
         form = LoginForm()
@@ -138,21 +140,27 @@ def register_view(request):
                 return render(request, 'register.html', {'form': form})
 
             # Check if username already exists
-            if Users.objects.filter(username=username).exists():
+            if len(Users.objects.raw("SELECT * FROM Users WHERE username = %s", [username])) > 0:
                 messages.error(request, 'Username already exists')
                 return render(request, 'register.html', {'form': form})
 
             # Create new user
-            user = Users(
-                username=username,
-                password=password,
-                first_name=first_name,
-                last_name=last_name,
-                phone_number=phone_number,
-                user_role='registered',
-                outstanding_balance=0.00
-            )
-            user.save()
+            # user = Users(
+            #     username=username,
+            #     password=password,
+            #     first_name=first_name,
+            #     last_name=last_name,
+            #     phone_number=phone_number,
+            #     user_role='registered',
+            #     outstanding_balance=0.00
+            # )
+            # user.save()
+
+            # Users.objects.raw("INSERT INTO Users(username, password, first_name, last_name, phone_number, user_role, outstanding_balance) VALUES (%s, %s, %s, %s, %s, 'registered', 0.00)", [username, password, first_name, last_name, phone_number])
+            # Users.objects.raw("COMMIT")
+
+            with connection.cursor() as cursor:
+                cursor.execute("INSERT INTO Users(username, password, first_name, last_name, phone_number, user_role, outstanding_balance) VALUES (%s, %s, %s, %s, %s, 'registered', 0.00)", [username, password, first_name, last_name, phone_number])
 
             messages.success(request, 'Account created successfully. Please log in.')
             return redirect('login')
@@ -172,18 +180,24 @@ def add_book_view(request):
             genre = form.cleaned_data['genre']
             publish_year = form.cleaned_data['publish_year']
 
-            if Books.objects.filter(title=title).exists():
+            if len(Books.objects.raw("SELECT * FROM Books WHERE title = %s AND author = %s AND publish_year = %s", [title, author, publish_year])) > 0:
                 messages.error(request, 'The book is already in the library.')
                 return render(request, 'add_book.html', {'form': form})
 
-            book = Books(
-                title=title,
-                author=author,
-                summary=summary,
-                genre=genre,
-                publish_year=publish_year
-            )
-            book.save()
+            # book = Books(
+            #     title=title,
+            #     author=author,
+            #     summary=summary,
+            #     genre=genre,
+            #     publish_year=publish_year
+            # )
+            # book.save()
+            
+            # Books.objects.raw("INSERT INTO Books(title, author, summary, genre, publish_year) VALUES (%s, %s, %s, %s, %s)", [title, author, summary, genre, publish_year])
+
+            with connection.cursor() as cursor:
+                cursor.execute("INSERT INTO Books(title, author, summary, genre, publish_year) VALUES (%s, %s, %s, %s, %s)", [title, author, summary, genre, publish_year])
+
 
             messages.success(request, 'Book added successfully.')
             return redirect('add_book')
@@ -212,9 +226,12 @@ def search_books(request):
     books = []
 
     if show_all:
-        books = Books.objects.all().order_by('title')
+        # books = Books.objects.all().order_by('title')
+        books = Books.objects.raw("SELECT * FROM Books ORDER BY title")
     elif query:
-        books = Books.objects.filter(
-            models.Q(title__icontains=query) | models.Q(author__icontains=query)
-        )
+        # books = Books.objects.filter(
+        #     models.Q(title__icontains=query) | models.Q(author__icontains=query)
+        # )
+        pattern = f"%{query}%"
+        books = Books.objects.raw("SELECT * FROM Books WHERE title LIKE %s OR author LIKE %s", [pattern, pattern])
     return render(request, 'search.html', {'books': books, 'query': query})
