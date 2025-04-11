@@ -180,7 +180,7 @@ def add_book_view(request):
             genre = form.cleaned_data['genre']
             publish_year = form.cleaned_data['publish_year']
 
-            if len(Books.objects.raw("SELECT * FROM Books WHERE title = %s AND author = %s AND publish_year = %s)", [title, author, publish_year])) > 0:
+            if len(Books.objects.raw("SELECT * FROM Books WHERE title = %s AND author = %s AND publish_year = %s", [title, author, publish_year])) > 0:
                 messages.error(request, 'The book is already in the library.')
                 return render(request, 'add_book.html', {'form': form})
 
