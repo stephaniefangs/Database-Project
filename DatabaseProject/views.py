@@ -133,7 +133,9 @@ def register_view(request):
             first_name = form.cleaned_data['first_name']
             last_name = form.cleaned_data['last_name']
             phone_number = form.cleaned_data['phone_number']
-
+            # print("phone_number value:", len(phone_number), type(phone_number))
+            if phone_number == "":
+                phone_number = None
             # Check if passwords match
             if password != confirm_password:
                 messages.error(request, 'Passwords do not match')
