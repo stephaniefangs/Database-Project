@@ -176,14 +176,17 @@ def add_book_view(request):
                 messages.error(request, 'The book is already in the library.')
                 return render(request, 'add_book.html', {'form': form})
 
-            book = Books(
-                title=title,
-                author=author,
-                summary=summary,
-                genre=genre,
-                publish_year=publish_year
-            )
-            book.save()
+            # book = Books(
+            #     title=title,
+            #     author=author,
+            #     summary=summary,
+            #     genre=genre,
+            #     publish_year=publish_year
+            # )
+            # book.save()
+            
+            Books.objects.raw("INSERT INTO Books(title, author, summary, genre, publish_year) VALUES (%s, %s, %s, %s, %s)", [title, author, summary, genre, publish_year])
+
 
             messages.success(request, 'Book added successfully.')
             return redirect('add_book')
