@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from django import forms
 from django.db import models, connection
-from .models import Users, Books
+from .models import Users, Books, Holds
 
 
 # Define forms
@@ -209,12 +209,30 @@ def add_book_view(request):
     return render(request, 'add_book.html', {'form': form})
 
 
+# def dashboard_view(request):
+#     if 'user_id' not in request.session:
+#         return redirect('login')
+
+#     user = Users.objects.get(user_id=request.session['user_id'])
+#     return render(request, 'dashboard.html', {'user': user})
+
+# from django.shortcuts import render
+# from .models import Books, Holds
+
 def dashboard_view(request):
     if 'user_id' not in request.session:
         return redirect('login')
 
     user = Users.objects.get(user_id=request.session['user_id'])
-    return render(request, 'dashboard.html', {'user': user})
+    
+    # Retrieve books that the user has placed holds on
+    holds = Holds.objects.filter(user_id=user.user_id)  # Get the holds for the user
+    books_on_hold = [hold.book for hold in holds]  # Get the books associated with the holds
+
+    return render(request, 'dashboard.html', {
+        'user': user,
+        'books_on_hold': books_on_hold  # Pass the list of books on hold to the template
+    })
 
 
 def logout_view(request):

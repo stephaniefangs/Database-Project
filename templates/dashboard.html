@@ -24,5 +24,24 @@
                 <p><strong>Outstanding Balance:</strong> ${{ user.outstanding_balance }}</p>
             </div>
         </div>
+
+        {% if books_on_hold %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    Books on Hold
+                </div>
+                <div class="card-body">
+                    <ul class="list-group">
+                        {% for book in books_on_hold %}
+                            <li class="list-group-item">
+                                <strong>{{ book.title }}</strong> by {{ book.author }} ({{ book.publish_year }})
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        {% else %}
+            <p>No books are currently on hold.</p>
+        {% endif %}
     </div>
 {% endblock %}
