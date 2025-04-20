@@ -237,3 +237,49 @@ def search_books(request):
         pattern = f"%{query}%"
         books = Books.objects.raw("SELECT * FROM Books WHERE title LIKE %s OR author LIKE %s", [pattern, pattern])
     return render(request, 'search.html', {'books': books, 'query': query})
+
+from django.db import connection
+from django.utils import timezone
+from django.shortcuts import redirect
+from django.contrib import messages
+
+def place_hold(request):
+    if request.method == 'POST':
+        book_id = request.POST.get('book_id')
+        user_id = request.session.get('user_id')
+
+        if not user_id:
+            messages.error(request, "You must be logged in to place a hold.")
+            return redirect('search_books')
+
+        try:
+            with connection.cursor() as cursor:
+                # Check if the book exists
+                cursor.execute("SELECT title FROM Books WHERE book_id = %s", [book_id])
+                book_row = cursor.fetchone()
+                if not book_row:
+                    messages.error(request, "Book not found.")
+                    return redirect('search_books')
+                book_title = book_row[0]
+
+                # Check if user already has a hold on this book
+                cursor.execute("""
+                    SELECT 1 FROM Holds 
+                    WHERE book_id = %s AND user_id = %s
+                """, [book_id, user_id])
+                existing = cursor.fetchone()
+
+                if existing:
+                    messages.info(request, f"You already have a hold on '{book_title}'.")
+                else:
+                    now = timezone.now()
+                    cursor.execute("""
+                        INSERT INTO Holds (book_id, user_id, hold_date)
+                        VALUES (%s, %s, %s)
+                    """, [book_id, user_id, now])
+                    messages.success(request, f"Hold placed on '{book_title}'.")
+
+        except Exception as e:
+            messages.error(request, f"Error placing hold: {str(e)}")
+
+    return redirect('search_books')

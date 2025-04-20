@@ -26,5 +26,6 @@ urlpatterns = [
     path('logout/', views.logout_view, name='logout'),  # Logout functionality
     path('admin/', admin.site.urls),
     path('search/', views.search_books, name='search_books'), # search for books page
-    path('add_book/', views.add_book_view, name='add_book')
+    path('add_book/', views.add_book_view, name='add_book'),
+    path('place_hold/', views.place_hold, name='place_hold'),
 ]
