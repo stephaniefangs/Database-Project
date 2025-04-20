@@ -25,21 +25,21 @@
         <h4 class="mt-4">Results</h4>
         <ul class="list-group mt-3">
             {% for book in books %}
-                <li class="list-group-item">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <strong>{{ book.title }}</strong> by {{ book.author }} ({{ book.publish_year }})<br>
-                            <em>{{ book.genre }}</em>
-                            <p>Summary: {{ book.summary }}</p>
-                        </div>
-                        <form method="POST" action="{% url 'place_hold' %}">
-                            {% csrf_token %}
-                            <input type="hidden" name="book_id" value="{{ book.book_id }}">
-                            <button type="submit" class="btn btn-outline-primary">Hold</button>
-                        </form>
+            <li class="list-group-item">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <a href="{% url 'book_detail' book.book_id %}"><strong>{{ book.title }}</strong></a> by {{ book.author }} ({{ book.publish_year }})<br>
+                        <em>{{ book.genre }}</em>
+                        <p>Summary: {{ book.summary }}</p>
                     </div>
-                </li>
-            {% endfor %}
+                    <form method="POST" action="{% url 'place_hold' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="book_id" value="{{ book.book_id }}">
+                        <button type="submit" class="btn btn-outline-primary">Hold</button>
+                    </form>
+                </div>
+            </li>
+        {% endfor %}
         </ul>
     {% elif query or request.GET.show_all %}
         <p class="mt-4 text-muted">No books found.</p>

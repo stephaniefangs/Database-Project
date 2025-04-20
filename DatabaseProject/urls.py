@@ -28,4 +28,8 @@ urlpatterns = [
     path('search/', views.search_books, name='search_books'), # search for books page
     path('add_book/', views.add_book_view, name='add_book'),
     path('place_hold/', views.place_hold, name='place_hold'),
+    path('book/<int:book_id>/', views.book_detail_view, name='book_detail'),
+    path('reserve_book/', views.reserve_book, name='reserve_book'),
+    path('return_book/', views.return_book, name='return_book'),
+    path('cancel_hold/', views.cancel_hold, name='cancel_hold'),
 ]

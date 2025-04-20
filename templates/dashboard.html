@@ -25,23 +25,62 @@
             </div>
         </div>
 
-        {% if books_on_hold %}
-            <div class="card mb-4">
-                <div class="card-header">
-                    Books on Hold
-                </div>
-                <div class="card-body">
+        <!-- Reserve -->
+        <div class="card mb-4">
+            <div class="card-header">
+                Books Currently Reserved
+            </div>
+            <div class="card-body">
+                {% if reserved_books %}
                     <ul class="list-group">
-                        {% for book in books_on_hold %}
-                            <li class="list-group-item">
-                                <strong>{{ book.title }}</strong> by {{ book.author }} ({{ book.publish_year }})
+                        {% for book in reserved_books %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>{{ book.1 }}</strong> by {{ book.2 }}
+                                    <br>
+                                    <small class="text-muted">Due date: {{ book.3 }}</small>
+                                </div>
+                                <form method="POST" action="{% url 'return_book' %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="reservation_id" value="{{ book.4 }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-success">Return</button>
+                                </form>
                             </li>
                         {% endfor %}
                     </ul>
-                </div>
+                {% else %}
+                    <p class="mb-0">You have no books currently checked out.</p>
+                {% endif %}
             </div>
-        {% else %}
-            <p>No books are currently on hold.</p>
-        {% endif %}
+        </div>
+
+        <!-- Hold -->
+        <div class="card mb-4">
+            <div class="card-header">
+                Books on Hold
+            </div>
+            <div class="card-body">
+                {% if books_on_hold %}
+                    <ul class="list-group">
+                        {% for book in books_on_hold %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>{{ book.title }}</strong> by {{ book.author }} ({{ book.publish_year }})
+                                    <br>
+                                    <small class="text-muted">Hold placed on: {{ book.hold_date|date:"F j, Y" }}</small>
+                                </div>
+                                <form method="POST" action="{% url 'cancel_hold' %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="hold_id" value="{{ book.hold_id }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">Cancel Hold</button>
+                                </form>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="mb-0">You have no books on hold.</p>
+                {% endif %}
+            </div>
+        </div>
     </div>
 {% endblock %}
