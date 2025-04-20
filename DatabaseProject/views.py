@@ -229,43 +229,77 @@ def dashboard_view(request):
     user_id = request.session['user_id']
     user = Users.objects.get(user_id=user_id)
     
-    # Retrieve books that the user has placed holds on with hold_id and hold_date
-    with connection.cursor() as cursor:
-        cursor.execute("""
-            SELECT b.book_id, b.title, b.author, b.publish_year, h.hold_id, h.hold_date
-            FROM Holds h
-            JOIN Books b ON h.book_id = b.book_id
-            WHERE h.user_id = %s
-        """, [user_id])
-        hold_rows = cursor.fetchall()
+    # Check user role
+    is_admin = user.user_role == 'admin'
     
-    books_on_hold = []
-    for row in hold_rows:
-        books_on_hold.append({
-            'book_id': row[0],
-            'title': row[1],
-            'author': row[2],
-            'publish_year': row[3],
-            'hold_id': row[4],
-            'hold_date': row[5]
+    if is_admin:
+        # Admin dashboard: show all reservations and holds
+        with connection.cursor() as cursor:
+            # Get all current reservations
+            cursor.execute("""
+                SELECT r.reservation_id, u.username, b.title, r.checkout_date, r.due_date
+                FROM Reservations r
+                JOIN Users u ON r.user_id = u.user_id
+                JOIN Copies c ON r.copy_id = c.copy_id
+                JOIN Books b ON c.book_id = b.book_id
+                WHERE r.return_date IS NULL
+                ORDER BY r.due_date
+            """)
+            all_reservations = cursor.fetchall()
+            
+            # Get all current holds
+            cursor.execute("""
+                SELECT h.hold_id, u.username, b.title, h.hold_date
+                FROM Holds h
+                JOIN Users u ON h.user_id = u.user_id
+                JOIN Books b ON h.book_id = b.book_id
+                ORDER BY h.hold_date
+            """)
+            all_holds = cursor.fetchall()
+        
+        return render(request, 'admin_dashboard.html', {
+            'user': user,
+            'all_reservations': all_reservations,
+            'all_holds': all_holds
         })
-    
-    # Retrieve books that the user has currently reserved
-    with connection.cursor() as cursor:
-        cursor.execute("""
-            SELECT b.book_id, b.title, b.author, r.due_date, r.reservation_id
-            FROM Reservations r
-            JOIN Copies c ON r.copy_id = c.copy_id
-            JOIN Books b ON c.book_id = b.book_id
-            WHERE r.user_id = %s AND r.return_date IS NULL
-        """, [user_id])
-        reserved_books = cursor.fetchall()
-    
-    return render(request, 'dashboard.html', {
-        'user': user,
-        'books_on_hold': books_on_hold,
-        'reserved_books': reserved_books
-    })
+    else:
+        # Regular user dashboard: show only their reservations and holds
+        with connection.cursor() as cursor:
+            # Get user's reservations
+            cursor.execute("""
+                SELECT b.book_id, b.title, b.author, r.due_date, r.reservation_id
+                FROM Reservations r
+                JOIN Copies c ON r.copy_id = c.copy_id
+                JOIN Books b ON c.book_id = b.book_id
+                WHERE r.user_id = %s AND r.return_date IS NULL
+            """, [user_id])
+            reserved_books = cursor.fetchall()
+            
+            # Get user's holds
+            cursor.execute("""
+                SELECT b.book_id, b.title, b.author, b.publish_year, h.hold_id, h.hold_date
+                FROM Holds h
+                JOIN Books b ON h.book_id = b.book_id
+                WHERE h.user_id = %s
+            """, [user_id])
+            hold_rows = cursor.fetchall()
+        
+        books_on_hold = []
+        for row in hold_rows:
+            books_on_hold.append({
+                'book_id': row[0],
+                'title': row[1],
+                'author': row[2],
+                'publish_year': row[3],
+                'hold_id': row[4],
+                'hold_date': row[5]
+            })
+        
+        return render(request, 'user_dashboard.html', {
+            'user': user,
+            'books_on_hold': books_on_hold,
+            'reserved_books': reserved_books
+        })
 
 def logout_view(request):
     request.session.flush()
@@ -296,6 +330,12 @@ def place_hold(request):
         if not user_id:
             messages.error(request, "You must be logged in to place a hold.")
             return redirect('search_books')
+
+        # Check if user is an admin
+        user = Users.objects.get(user_id=user_id)
+        if user.user_role == 'admin':
+            messages.error(request, "Administrators cannot place holds on books.")
+            return redirect('book_detail', book_id=book_id)
 
         try:
             with connection.cursor() as cursor:
@@ -350,6 +390,12 @@ def place_hold(request):
     return redirect('search_books')
 
 def book_detail_view(request, book_id):
+    if 'user_id' not in request.session:
+        return redirect('login')
+        
+    user_id = request.session['user_id']
+    user = Users.objects.get(user_id=user_id)
+    
     try:
         # Get the book details
         book = Books.objects.raw("SELECT * FROM Books WHERE book_id = %s", [book_id])[0]
@@ -365,7 +411,8 @@ def book_detail_view(request, book_id):
         
         return render(request, 'book_detail.html', {
             'book': book,
-            'available_copies': available_copies
+            'available_copies': available_copies,
+            'user': user
         })
     except Exception as e:
         messages.error(request, f"Error retrieving book details: {str(e)}")
@@ -378,6 +425,12 @@ def reserve_book(request):
 
         if not user_id:
             messages.error(request, "You must be logged in to reserve a book.")
+            return redirect('book_detail', book_id=book_id)
+            
+        # Check if user is an admin
+        user = Users.objects.get(user_id=user_id)
+        if user.user_role == 'admin':
+            messages.error(request, "Administrators cannot reserve books.")
             return redirect('book_detail', book_id=book_id)
 
         try:

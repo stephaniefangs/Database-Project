@@ -20,21 +20,23 @@
             <h6 class="mt-4">Summary</h6>
             <p>{{ book.summary|default:"No summary available." }}</p>
             
-            {% if available_copies > 0 %}
-                <form method="POST" action="{% url 'reserve_book' %}">
-                    {% csrf_token %}
-                    <input type="hidden" name="book_id" value="{{ book.book_id }}">
-                    <button type="submit" class="btn btn-success">Reserve a Copy</button>
-                </form>
-            {% else %}
-                <div class="alert alert-warning">
-                    No copies available for reservation.
-                    <form method="POST" action="{% url 'place_hold' %}">
+            {% if user.user_role != 'admin' %}
+                {% if available_copies > 0 %}
+                    <form method="POST" action="{% url 'reserve_book' %}">
                         {% csrf_token %}
                         <input type="hidden" name="book_id" value="{{ book.book_id }}">
-                        <button type="submit" class="btn btn-primary mt-2">Place Hold</button>
+                        <button type="submit" class="btn btn-success">Reserve a Copy</button>
                     </form>
-                </div>
+                {% else %}
+                    <div class="alert alert-warning">
+                        No copies available for reservation.
+                        <form method="POST" action="{% url 'place_hold' %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="book_id" value="{{ book.book_id }}">
+                            <button type="submit" class="btn btn-primary mt-2">Place Hold</button>
+                        </form>
+                    </div>
+                {% endif %}
             {% endif %}
         </div>
     </div>
