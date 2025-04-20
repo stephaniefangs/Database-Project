@@ -568,3 +568,102 @@ def cancel_hold(request):
             messages.error(request, f"Error cancelling hold: {str(e)}")
 
     return redirect('dashboard')
+
+def admin_delete_hold(request):
+    if request.method == 'POST':
+        hold_id = request.POST.get('hold_id')
+        user_id = request.session.get('user_id')
+
+        if not user_id:
+            return redirect('login')
+            
+        # Check if user is an admin
+        user = Users.objects.get(user_id=user_id)
+        if user.user_role != 'admin':
+            messages.error(request, "You don't have permission to perform this action.")
+            return redirect('dashboard')
+
+        try:
+            with connection.cursor() as cursor:
+                # Get hold info for the message
+                cursor.execute("""
+                    SELECT b.title, u.username
+                    FROM Holds h
+                    JOIN Books b ON h.book_id = b.book_id
+                    JOIN Users u ON h.user_id = u.user_id
+                    WHERE h.hold_id = %s
+                """, [hold_id])
+                result = cursor.fetchone()
+                
+                if not result:
+                    messages.error(request, "Hold not found.")
+                    return redirect('dashboard')
+                
+                book_title, username = result
+                
+                # Delete the hold
+                cursor.execute("DELETE FROM Holds WHERE hold_id = %s", [hold_id])
+                
+                messages.success(request, f"Hold on '{book_title}' by {username} deleted.")
+
+        except Exception as e:
+            messages.error(request, f"Error deleting hold: {str(e)}")
+
+    return redirect('dashboard')
+
+def admin_end_reservation(request):
+    if request.method == 'POST':
+        reservation_id = request.POST.get('reservation_id')
+        user_id = request.session.get('user_id')
+
+        if not user_id:
+            return redirect('login')
+            
+        # Check if user is an admin
+        user = Users.objects.get(user_id=user_id)
+        if user.user_role != 'admin':
+            messages.error(request, "You don't have permission to perform this action.")
+            return redirect('dashboard')
+
+        try:
+            with connection.cursor() as cursor:
+                # Get reservation info
+                cursor.execute("""
+                    SELECT c.copy_id, b.title, u.username
+                    FROM Reservations r
+                    JOIN Copies c ON r.copy_id = c.copy_id
+                    JOIN Books b ON c.book_id = b.book_id
+                    JOIN Users u ON r.user_id = u.user_id
+                    WHERE r.reservation_id = %s
+                """, [reservation_id])
+                result = cursor.fetchone()
+                
+                if not result:
+                    messages.error(request, "Reservation not found.")
+                    return redirect('dashboard')
+                
+                copy_id, book_title, username = result
+                
+                # Update reservation with return date
+                from datetime import date
+                today = date.today()
+                
+                cursor.execute("""
+                    UPDATE Reservations 
+                    SET return_date = %s
+                    WHERE reservation_id = %s
+                """, [today, reservation_id])
+                
+                # Update copy availability
+                cursor.execute("""
+                    UPDATE Copies 
+                    SET is_available = TRUE
+                    WHERE copy_id = %s
+                """, [copy_id])
+                
+                messages.success(request, f"Ended reservation of '{book_title}' by {username}.")
+
+        except Exception as e:
+            messages.error(request, f"Error ending reservation: {str(e)}")
+
+    return redirect('dashboard')

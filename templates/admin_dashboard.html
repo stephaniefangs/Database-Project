@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Admin Dashboard</h2>
+        <div>
+            <a href="{% url 'search_books' %}" class="btn btn-primary me-2">Search Books</a>
+            <a href="{% url 'add_book' %}" class="btn btn-primary me-2">Add Book</a>
+            <a href="{% url 'logout' %}" class="btn btn-secondary">Logout</a>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            User Information
+        </div>
+        <div class="card-body">
+            <p><strong>Username:</strong> {{ user.username }}</p>
+            <p><strong>Name:</strong> {{ user.first_name }} {{ user.last_name }}</p>
+            <p><strong>Role:</strong> {{ user.user_role }}</p>
+        </div>
+    </div>
+
+    <!-- Current Reservations -->
+    <div class="card mb-4">
+        <div class="card-header">
+            Current Reservations
+        </div>
+        <div class="card-body">
+            {% if all_reservations %}
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Book</th>
+                                <th>Checkout Date</th>
+                                <th>Due Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for reservation in all_reservations %}
+                                <tr>
+                                    <td>{{ reservation.1 }}</td>
+                                    <td>{{ reservation.2 }}</td>
+                                    <td>{{ reservation.3 }}</td>
+                                    <td>{{ reservation.4 }}</td>
+                                    <td>
+                                        <form method="POST" action="{% url 'admin_end_reservation' %}">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="reservation_id" value="{{ reservation.0 }}">
+                                            <button type="submit" class="btn btn-sm btn-outline-success">End Reservation</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="mb-0">No current reservations.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Current Holds -->
+    <div class="card mb-4">
+        <div class="card-header">
+            Current Holds
+        </div>
+        <div class="card-body">
+            {% if all_holds %}
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Book</th>
+                                <th>Hold Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for hold in all_holds %}
+                                <tr>
+                                    <td>{{ hold.1 }}</td>
+                                    <td>{{ hold.2 }}</td>
+                                    <td>{{ hold.3 }}</td>
+                                    <td>
+                                        <form method="POST" action="{% url 'admin_delete_hold' %}">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="hold_id" value="{{ hold.0 }}">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">Delete Hold</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="mb-0">No current holds.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
