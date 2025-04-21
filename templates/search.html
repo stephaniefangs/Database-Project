@@ -32,11 +32,6 @@
                         <em>{{ book.genre }}</em>
                         <p>Summary: {{ book.summary }}</p>
                     </div>
-                    <form method="POST" action="{% url 'place_hold' %}">
-                        {% csrf_token %}
-                        <input type="hidden" name="book_id" value="{{ book.book_id }}">
-                        <button type="submit" class="btn btn-outline-primary">Hold</button>
-                    </form>
                 </div>
             </li>
         {% endfor %}
