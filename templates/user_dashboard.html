@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+
+{% block title %}User Dashboard{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Welcome, {{ user.first_name|default:user.username }}</h2>
+            <div>
+                <a href="{% url 'search_books' %}" class="btn btn-primary me-2">Search for Books</a>
+                <a href="{% url 'add_book' %}" class="btn btn-primary me-2">Add a New Book</a>
+                <a href="{% url 'logout' %}" class="btn btn-secondary">Logout</a>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">
+                User Information
+            </div>
+            <div class="card-body">
+                <p><strong>Username:</strong> {{ user.username }}</p>
+                <p><strong>Name:</strong> {{ user.first_name }} {{ user.last_name }}</p>
+                <p><strong>Role:</strong> {{ user.user_role }}</p>
+                <p><strong>Outstanding Balance:</strong> ${{ user.outstanding_balance }}</p>
+            </div>
+        </div>
+
+        <!-- Reserved -->
+        <div class="card mb-4">
+            <div class="card-header">
+                Books Currently Reserved
+            </div>
+            <div class="card-body">
+                {% if reserved_books %}
+                    <ul class="list-group">
+                        {% for book in reserved_books %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>{{ book.1 }}</strong> by {{ book.2 }}
+                                    <br>
+                                    <small class="text-muted">Due date: {{ book.3 }}</small>
+                                </div>
+                                <form method="POST" action="{% url 'return_book' %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="reservation_id" value="{{ book.4 }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-success">Return</button>
+                                </form>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="mb-0">You have no books currently checked out.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Books -->
+        <div class="card mb-4">
+            <div class="card-header">
+                Books on Hold
+            </div>
+            <div class="card-body">
+                {% if books_on_hold %}
+                    <ul class="list-group">
+                        {% for book in books_on_hold %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>{{ book.title }}</strong> by {{ book.author }} ({{ book.publish_year }})
+                                    <br>
+                                    <small class="text-muted">Hold placed on: {{ book.hold_date|date:"F j, Y" }}</small>
+                                </div>
+                                <form method="POST" action="{% url 'cancel_hold' %}">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="hold_id" value="{{ book.hold_id }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">Cancel Hold</button>
+                                </form>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="mb-0">You have no books on hold.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}
