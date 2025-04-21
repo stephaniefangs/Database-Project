@@ -732,3 +732,38 @@ def clear_balance(request):
             messages.error(request, f"Error clearing balance: {str(e)}")
 
     return redirect('dashboard')
+
+def pay_balance(request):
+    if request.method == 'POST':
+        user_id = request.session.get('user_id')
+
+        if not user_id:
+            return redirect('login')
+
+        try:
+            user = Users.objects.get(user_id=user_id)
+            current_balance = user.outstanding_balance
+
+            if current_balance > 0:
+                with connection.cursor() as cursor:
+                    # Set balance to zero
+                    cursor.execute("""
+                        UPDATE Users
+                        SET outstanding_balance = 0.00
+                        WHERE user_id = %s
+                    """, [user_id])
+
+                    # Insert into Balance_History
+                    cursor.execute("""
+                        INSERT INTO Balance_History (user_id, amount, date_of_change)
+                        VALUES (%s, %s, %s)
+                    """, [user_id, -current_balance, now()])
+
+                messages.success(request, "Your outstanding balance has been successfully paid.")
+            else:
+                messages.info(request, "You have no outstanding balance to pay.")
+
+        except Users.DoesNotExist:
+            messages.error(request, "User not found.")
+
+        return redirect('dashboard')
