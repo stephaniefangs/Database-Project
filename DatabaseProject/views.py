@@ -1,3 +1,4 @@
+
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django import forms
@@ -5,7 +6,7 @@ from django.db import models, connection
 from .models import Users, Books, Holds
 from django.db import connection
 from django.utils import timezone
-
+from django.utils.timezone import now
 
 
 # Define forms
@@ -263,7 +264,7 @@ def dashboard_view(request):
 
             # Get outstanding balances for all users
             cursor.execute("""
-                SELECT u.username, u.first_name, u.last_name, u.outstanding_balance
+                SELECT u.user_id, u.username, u.first_name, u.last_name, u.outstanding_balance
                 FROM Users u
                 WHERE u.outstanding_balance > 0
                 ORDER BY u.outstanding_balance DESC
@@ -679,5 +680,55 @@ def admin_end_reservation(request):
 
         except Exception as e:
             messages.error(request, f"Error ending reservation: {str(e)}")
+
+    return redirect('dashboard')
+
+def clear_balance(request):
+    if request.method == 'POST':
+        user_id_to_clear = request.POST.get('user_id')
+        session_user_id = request.session.get('user_id')
+
+        if not session_user_id:
+            return redirect('login')
+
+        try:
+            session_user = Users.objects.get(user_id=session_user_id)
+        except Users.DoesNotExist:
+            messages.error(request, "Invalid session. Please log in again.")
+            return redirect('login')
+
+        if session_user.user_role != 'admin':
+            messages.error(request, "You don't have permission to perform this action.")
+            return redirect('dashboard')
+
+        try:
+            # Get the username and current balance of the user whose balance is being cleared
+            user_to_clear = Users.objects.get(user_id=user_id_to_clear)
+            username_to_clear = user_to_clear.username
+            current_balance = user_to_clear.outstanding_balance
+
+            if current_balance > 0:
+                with connection.cursor() as cursor:
+                    # Clear the balance
+                    cursor.execute("""
+                        UPDATE Users
+                        SET outstanding_balance = 0.00
+                        WHERE user_id = %s
+                    """, [user_id_to_clear])
+
+                    # Insert into Balance_History
+                    cursor.execute("""
+                        INSERT INTO Balance_History (user_id, amount, date_of_change)
+                        VALUES (%s, %s, %s)
+                    """, [user_id_to_clear, -current_balance, now()])
+
+                messages.success(request, f"Outstanding balance for user '{username_to_clear}' has been cleared.")
+            else:
+                messages.info(request, f"User '{username_to_clear}' has no balance to clear.")
+
+        except Users.DoesNotExist:
+            messages.error(request, "User not found.")
+        except Exception as e:
+            messages.error(request, f"Error clearing balance: {str(e)}")
 
     return redirect('dashboard')
