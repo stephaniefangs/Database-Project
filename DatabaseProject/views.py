@@ -174,8 +174,17 @@ def register_view(request):
 
     return render(request, 'register.html', {'form': form})
 
-
 def add_book_view(request):
+    if 'user_id' not in request.session:
+        return redirect('login')  # Ensure user is logged in
+
+    user = Users.objects.get(user_id=request.session['user_id'])
+    
+    # Check for admin privileges
+    if user.user_role != 'admin':
+        messages.error(request, 'You do not have permission to access this page.')
+        return redirect('dashboard')
+
     if request.method == 'POST':
         form = AddBookForm(request.POST)
         if form.is_valid():
@@ -185,24 +194,20 @@ def add_book_view(request):
             genre = form.cleaned_data['genre']
             publish_year = form.cleaned_data['publish_year']
 
-            if len(Books.objects.raw("SELECT * FROM Books WHERE title = %s AND author = %s AND publish_year = %s", [title, author, publish_year])) > 0:
+            existing_books = Books.objects.raw(
+                "SELECT * FROM Books WHERE title = %s AND author = %s AND publish_year = %s",
+                [title, author, publish_year]
+            )
+
+            if len(list(existing_books)) > 0:
                 messages.error(request, 'The book is already in the library.')
                 return render(request, 'add_book.html', {'form': form})
 
-            # book = Books(
-            #     title=title,
-            #     author=author,
-            #     summary=summary,
-            #     genre=genre,
-            #     publish_year=publish_year
-            # )
-            # book.save()
-            
-            # Books.objects.raw("INSERT INTO Books(title, author, summary, genre, publish_year) VALUES (%s, %s, %s, %s, %s)", [title, author, summary, genre, publish_year])
-
             with connection.cursor() as cursor:
-                cursor.execute("INSERT INTO Books(title, author, summary, genre, publish_year) VALUES (%s, %s, %s, %s, %s)", [title, author, summary, genre, publish_year])
-
+                cursor.execute(
+                    "INSERT INTO Books(title, author, summary, genre, publish_year) VALUES (%s, %s, %s, %s, %s)",
+                    [title, author, summary, genre, publish_year]
+                )
 
             messages.success(request, 'Book added successfully.')
             return redirect('add_book')
@@ -210,7 +215,6 @@ def add_book_view(request):
         form = AddBookForm()
 
     return render(request, 'add_book.html', {'form': form})
-
 
 # def dashboard_view(request):
 #     if 'user_id' not in request.session:
