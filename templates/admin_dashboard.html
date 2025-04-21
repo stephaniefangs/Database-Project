@@ -107,5 +107,46 @@
             {% endif %}
         </div>
     </div>
+    <!-- Outstanding Balances -->
+    <div class="card mb-4">
+        <div class="card-header">
+            Outstanding Balances
+        </div>
+        <div class="card-body">
+            {% if user_balances %}
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Name</th>
+                                <th>Outstanding Balance</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for ub in user_balances %}
+                                <tr>
+                                    <td>{{ ub.1 }}</td>
+                                    <td>{{ ub.2 }} {{ ub.3 }}</td>
+                                    <td>${{ ub.4 }}</td>
+                                    <td>
+                                        <form method="POST" action="{% url 'clear_balance' %}">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="user_id" value="{{ ub.0 }}">
+                                            <button type="submit" class="btn btn-sm btn-outline-warning">Clear Balance</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="mb-0">No users with outstanding balances.</p>
+            {% endif %}
+        </div>
+    </div>
+
 </div>
 {% endblock %}
