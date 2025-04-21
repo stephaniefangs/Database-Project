@@ -107,5 +107,38 @@
             {% endif %}
         </div>
     </div>
+    <!-- Outstanding Balances -->
+    <div class="card mb-4">
+        <div class="card-header">
+            Outstanding Balances
+        </div>
+        <div class="card-body">
+            {% if user_balances %}
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Name</th>
+                                <th>Outstanding Balance</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for ub in user_balances %}
+                                <tr>
+                                    <td>{{ ub.0 }}</td>
+                                    <td>{{ ub.1 }} {{ ub.2 }}</td>
+                                    <td>${{ ub.3 }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="mb-0">No users with outstanding balances.</p>
+            {% endif %}
+        </div>
+    </div>
+
 </div>
 {% endblock %}

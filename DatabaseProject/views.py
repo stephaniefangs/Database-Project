@@ -260,11 +260,21 @@ def dashboard_view(request):
                 ORDER BY h.hold_date
             """)
             all_holds = cursor.fetchall()
-        
+
+            # Get outstanding balances for all users
+            cursor.execute("""
+                SELECT u.username, u.first_name, u.last_name, u.outstanding_balance
+                FROM Users u
+                WHERE u.outstanding_balance > 0
+                ORDER BY u.outstanding_balance DESC
+            """)
+            user_balances = cursor.fetchall()
+
         return render(request, 'admin_dashboard.html', {
             'user': user,
             'all_reservations': all_reservations,
-            'all_holds': all_holds
+            'all_holds': all_holds,
+            'user_balances': user_balances,
         })
     else:
         # Regular user dashboard: show only their reservations and holds
