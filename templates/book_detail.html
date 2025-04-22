@@ -20,7 +20,7 @@
             <h6 class="mt-4">Summary</h6>
             <p>{{ book.summary|default:"No summary available." }}</p>
             
-            {% if user.user_role != 'admin' %}
+            {% if user.user_role == 'registered' %}
                 {% if available_copies > 0 %}
                     <form method="POST" action="{% url 'reserve_book' %}">
                         {% csrf_token %}
@@ -37,6 +37,12 @@
                         </form>
                     </div>
                 {% endif %}
+            {% elif user.user_role == 'admin' %}
+                <form method="POST" action="{% url 'add_copy' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="book_id" value="{{ book.book_id }}">
+                        <button type="submit" class="btn btn-success">Add a Copy</button>
+                    </form>
             {% endif %}
         </div>
     </div>
