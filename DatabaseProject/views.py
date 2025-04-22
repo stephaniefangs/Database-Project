@@ -545,11 +545,11 @@ def return_book(request):
                 """, [today, reservation_id])
                 
                 # Update copy availability
-                cursor.execute("""
-                    UPDATE Copies 
-                    SET is_available = TRUE
-                    WHERE copy_id = %s
-                """, [copy_id])
+                # cursor.execute("""
+                #     UPDATE Copies 
+                #     SET is_available = TRUE
+                #     WHERE copy_id = %s
+                # """, [copy_id])
                 
                 messages.success(request, f"Successfully returned '{book_title}'.")
 
@@ -684,11 +684,11 @@ def admin_end_reservation(request):
                 """, [today, reservation_id])
                 
                 # Update copy availability
-                cursor.execute("""
-                    UPDATE Copies 
-                    SET is_available = TRUE
-                    WHERE copy_id = %s
-                """, [copy_id])
+                # cursor.execute("""
+                #     UPDATE Copies 
+                #     SET is_available = TRUE
+                #     WHERE copy_id = %s
+                # """, [copy_id])
                 
                 messages.success(request, f"Ended reservation of '{book_title}' by {username}.")
 

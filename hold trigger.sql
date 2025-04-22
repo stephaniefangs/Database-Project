@@ -4,16 +4,17 @@
 CREATE OR REPLACE FUNCTION book_returned()
 RETURNS TRIGGER AS $$
 DECLARE 
-	reserved_user INTEGER
-	reserved_hold INTEGER
+	reserved_user INTEGER;
+	reserved_hold INTEGER;
+	reserved_copy INTEGER;
 BEGIN
 	IF OLD.return_date IS NULL AND NEW.return_date IS NOT NULL THEN
-		SELECT user_id, hold_id
-		INTO reserved_user, reserved_hold
-		FROM holds
-		WHERE holds.book_id = NEW.book_id AND holds.hold_date = (SELECT MIN(hold_date)
-																  FROM holds
-																  WHERE holds.book_id = NEW.book_id)
+		SELECT user_id, hold_id, copy_id
+		INTO reserved_user, reserved_hold, reserved_copy
+		FROM holds NATURAL JOIN copies
+		WHERE copies.copy_id = NEW.copy_id AND ROW(holds.hold_date, copies.book_id) IN (SELECT MIN(hold_date), book_id
+																  			 			   FROM holds
+																  			 			   GROUP BY book_id)
 		LIMIT 1;
 
 		IF NOT FOUND THEN
@@ -30,7 +31,7 @@ BEGIN
 			WHERE copies.copy_id = NEW.copy_id;
 
 			DELETE FROM holds
-			WHERE holds.hold_id = reserved_hold
+			WHERE holds.hold_id = reserved_hold;
 		END IF;
 	END IF;
 	RETURN NEW;
