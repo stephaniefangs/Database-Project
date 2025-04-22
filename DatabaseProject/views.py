@@ -334,7 +334,9 @@ def search_books(request):
         #     models.Q(title__icontains=query) | models.Q(author__icontains=query)
         # )
         pattern = f"%{query}%"
-        books = Books.objects.raw("SELECT * FROM Books WHERE title LIKE %s OR author LIKE %s", [pattern, pattern])
+        books = Books.objects.raw("SELECT * FROM Books WHERE LOWER(title) LIKE LOWER(%s) OR LOWER(author) LIKE LOWER(%s)", [pattern, pattern])
+    else:
+        books = Books.objects.raw("SELECT * FROM Books ORDER BY title")
     return render(request, 'search.html', {'books': books, 'query': query})
 
 def place_hold(request):
