@@ -210,6 +210,18 @@ def add_book_view(request):
                     [title, author, summary, genre, publish_year]
                 )
 
+            book_result = list(Books.objects.raw("SELECT book_id FROM Books WHERE title = %s", [title]))
+            print(book_result)
+            if book_result:
+                print(book_result[0])
+                book_id = book_result[0].book_id
+                print(book_result[0].book_id)
+                with connection.cursor() as cursor:
+                    cursor.execute(
+                        "INSERT INTO Copies(book_id, is_available) VALUES (%s, TRUE)", [book_id]
+                    )
+
+
             messages.success(request, 'Book added successfully.')
             return redirect('add_book')
     else:
@@ -769,3 +781,21 @@ def pay_balance(request):
             messages.error(request, "User not found.")
 
         return redirect('dashboard')
+
+def add_copy(request):
+    if request.method == 'POST':
+        book_id = request.POST.get('book_id')
+        user_id = request.session.get('user_id')
+
+        user_role = list(Users.objects.raw("SELECT user_id, user_role FROM Users WHERE user_id = %s", [user_id]))[0].user_role
+        if user_role == 'admin':
+            try:
+                with connection.cursor() as cursor:
+                    cursor.execute('''
+                        INSERT INTO Copies(book_id, is_available)
+                        VALUES (%s, TRUE)
+                    ''', [book_id])
+                messages.success(request, "Book copy added successfully.")
+            except Exception as e:
+                messages.error(request, f"Error adding copy: {str(e)}")
+        return redirect('book_detail', book_id=book_id)
