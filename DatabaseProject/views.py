@@ -6,6 +6,7 @@ from .models import Users, Books, BalanceHistory
 from django.db import connection
 from django.utils import timezone
 from django.utils.timezone import now
+import re
 
 
 # Define forms
@@ -136,6 +137,19 @@ def register_view(request):
             first_name = form.cleaned_data['first_name']
             last_name = form.cleaned_data['last_name']
             phone_number = form.cleaned_data['phone_number']
+
+            # Phone number validation
+            if phone_number:
+                if not re.match(r'^[0-9()\-\s]+$', phone_number):
+                    messages.error(request, 'Phone number must contain only digits, parentheses, hyphens, and spaces.')
+                    return render(request, 'register.html', {'form': form})
+                if '.' in phone_number:
+                    messages.error(request, 'Phone number cannot contain decimal points.')
+                    return render(request, 'register.html', {'form': form})
+                if phone_number.startswith('-'):
+                    messages.error(request, 'Phone number cannot start with a negative sign.')
+                    return render(request, 'register.html', {'form': form})
+
             # print("phone_number value:", len(phone_number), type(phone_number))
             if phone_number == "":
                 phone_number = None
