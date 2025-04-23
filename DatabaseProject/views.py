@@ -480,7 +480,14 @@ def reserve_book(request):
                     return redirect('book_detail', book_id=book_id)
                 
                 copy_id = copy_row[0]
-                
+
+                # users cannot reserve multiple copies of same book
+                already_reserved = cursor.execute("SELECT * FROM Reservations WHERE book_id = %s AND user_id = %s", [book_id, user_id]).fetchall()
+
+                if len(already_reserved) > 0:
+                    messages.error(request, "You already reserved a copy of this book!")
+                    return redirect('book_detail', book_id=book_id)
+
                 # Get book title for the message
                 cursor.execute("SELECT title FROM Books WHERE book_id = %s", [book_id])
                 book_title = cursor.fetchone()[0]
