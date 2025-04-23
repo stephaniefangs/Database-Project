@@ -366,6 +366,10 @@ def place_hold(request):
             messages.error(request, "Administrators cannot place holds on books.")
             return redirect('book_detail', book_id=book_id)
 
+        if user.outstanding_balance > 0:
+            messages.error(request, "Cannot hold a book due to outstanding balance.")
+            return redirect('book_detail', book_id=book_id)
+
         try:
             with connection.cursor() as cursor:
                 # Check if the book exists
@@ -481,17 +485,18 @@ def reserve_book(request):
                 
                 copy_id = copy_row[0]
 
-                # users cannot reserve multiple copies of same book
-                already_reserved = cursor.execute("SELECT * FROM Reservations WHERE book_id = %s AND user_id = %s", [book_id, user_id]).fetchall()
-
-                if len(already_reserved) > 0:
-                    messages.error(request, "You already reserved a copy of this book!")
-                    return redirect('book_detail', book_id=book_id)
-
                 # Get book title for the message
                 cursor.execute("SELECT title FROM Books WHERE book_id = %s", [book_id])
                 book_title = cursor.fetchone()[0]
-                
+
+                # users cannot reserve multiple copies of same book
+                cursor.execute("SELECT * FROM Reservations WHERE book_id = %s AND user_id = %s",
+                                                  [book_id, user_id])
+                already_reserved = cursor.fetchone()
+                if already_reserved:
+                    messages.info(request, f"You have already checked out '{book_title}'.")
+                    return redirect('book_detail', book_id=book_id)
+
                 # Create reservation with due date 7 days from now
                 from datetime import date, timedelta
                 today = date.today()
