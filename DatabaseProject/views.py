@@ -516,9 +516,14 @@ def reserve_book(request):
                 book_title = cursor.fetchone()[0]
 
                 # users cannot reserve multiple copies of same book
-                cursor.execute("SELECT * FROM Reservations WHERE book_id = %s AND user_id = %s",
-                                                  [book_id, user_id])
+                cursor.execute("""
+                    SELECT r.* FROM Reservations r
+                    JOIN Copies c ON r.copy_id = c.copy_id
+                    WHERE c.book_id = %s AND r.user_id = %s
+                    AND r.return_date IS NULL
+                """, [book_id, user_id])
                 already_reserved = cursor.fetchone()
+                
                 if already_reserved:
                     messages.info(request, f"You have already checked out '{book_title}'.")
                     return redirect('book_detail', book_id=book_id)
