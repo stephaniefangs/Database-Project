@@ -461,6 +461,9 @@ def reserve_book(request):
         if user.user_role == 'admin':
             messages.error(request, "Administrators cannot reserve books.")
             return redirect('book_detail', book_id=book_id)
+        if user.outstanding_balance > 0:
+            messages.error(request, "Cannot reserve a book due to outstanding balance.")
+            return redirect('book_detail', book_id=book_id)
 
         try:
             with connection.cursor() as cursor:
