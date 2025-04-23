@@ -36,5 +36,6 @@ urlpatterns = [
     path('admin_end_reservation/', views.admin_end_reservation, name='admin_end_reservation'),
     path('clear_balance/', views.clear_balance, name='clear_balance'),
     path('pay_balance/', views.pay_balance, name='pay_balance'),
-    path('add_copy/', views.add_copy, name='add_copy')
+    path('add_copy/', views.add_copy, name='add_copy'),
+    path('admin_balance_history/', views.admin_balance_history, name='admin_balance_history')
 ]

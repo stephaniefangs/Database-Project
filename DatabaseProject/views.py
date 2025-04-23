@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from django import forms
 from django.db import models, connection
-from .models import Users, Books, Holds
+from .models import Users, Books, BalanceHistory
 from django.db import connection
 from django.utils import timezone
 from django.utils.timezone import now
@@ -353,6 +353,24 @@ def search_books(request):
     else:
         books = Books.objects.raw("SELECT * FROM Books ORDER BY title")
     return render(request, 'search.html', {'books': books, 'query': query})
+
+def admin_balance_history(request):
+    query = request.GET.get('query', '')
+    show_all = request.GET.get('show_all')
+
+    with connection.cursor() as cursor:
+        if show_all:
+            cursor.execute("SELECT * FROM balance_history NATURAL JOIN users ORDER BY date_of_change DESC")
+        elif query:
+            pattern = f"%{query}%"
+            cursor.execute("SELECT * FROM balance_history NATURAL JOIN users WHERE LOWER(username) LIKE LOWER(%s) ORDER BY date_of_change DESC", [pattern])
+        else:
+            cursor.execute("SELECT * FROM balance_history NATURAL JOIN users ORDER BY date_of_change DESC")
+
+        columns = [col[0] for col in cursor.description]
+        transactions = [dict(zip(columns, row)) for row in cursor.fetchall()]
+        return render(request, "balance_history.html", {'transactions': transactions, 'query': query})
+
 
 def place_hold(request):
     if request.method == 'POST':

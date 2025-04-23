@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}Search Books{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Balance History</h2>
+        <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">Back to Dashboard</a>
+    </div>
+
+    <form method="GET" action="{% url 'admin_balance_history' %}">
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <input type="text" class="form-control" name="query" placeholder="Enter Username" value="{{ query }}">
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-primary">Search</button>
+                <a href="{% url 'admin_balance_history' %}?show_all=1" class="btn btn-info ms-2">Show All Transactions</a>
+            </div>
+        </div>
+    </form>
+
+    {% if transactions %}
+        <h4 class="mt-4">Results</h4>
+        <ul class="list-group mt-3">
+            {% for transaction in transactions %}
+            <li class="list-group-item">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <p>Change of {{ transaction.amount }} at {{ transaction.date_of_change }} for User {{ transaction.username }}</p>
+                    </div>
+                </div>
+            </li>
+        {% endfor %}
+        </ul>
+    {% elif query or request.GET.show_all %}
+        <p class="mt-4 text-muted">No transaction found.</p>
+    {% endif %}
+</div>
+{% endblock %}
