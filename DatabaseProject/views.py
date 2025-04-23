@@ -6,6 +6,7 @@ from .models import Users, Books, BalanceHistory
 from django.db import connection
 from django.utils import timezone
 from django.utils.timezone import now
+import re
 
 
 # Define forms
@@ -136,6 +137,19 @@ def register_view(request):
             first_name = form.cleaned_data['first_name']
             last_name = form.cleaned_data['last_name']
             phone_number = form.cleaned_data['phone_number']
+
+            # Phone number validation
+            if phone_number:
+                if not re.match(r'^[0-9()\-\s]+$', phone_number):
+                    messages.error(request, 'Phone number must contain only digits, parentheses, hyphens, and spaces.')
+                    return render(request, 'register.html', {'form': form})
+                if '.' in phone_number:
+                    messages.error(request, 'Phone number cannot contain decimal points.')
+                    return render(request, 'register.html', {'form': form})
+                if phone_number.startswith('-'):
+                    messages.error(request, 'Phone number cannot start with a negative sign.')
+                    return render(request, 'register.html', {'form': form})
+
             # print("phone_number value:", len(phone_number), type(phone_number))
             if phone_number == "":
                 phone_number = None
@@ -516,9 +530,14 @@ def reserve_book(request):
                 book_title = cursor.fetchone()[0]
 
                 # users cannot reserve multiple copies of same book
-                cursor.execute("SELECT * FROM Reservations WHERE book_id = %s AND user_id = %s",
-                                                  [book_id, user_id])
+                cursor.execute("""
+                    SELECT r.* FROM Reservations r
+                    JOIN Copies c ON r.copy_id = c.copy_id
+                    WHERE c.book_id = %s AND r.user_id = %s
+                    AND r.return_date IS NULL
+                """, [book_id, user_id])
                 already_reserved = cursor.fetchone()
+                
                 if already_reserved:
                     messages.info(request, f"You have already checked out '{book_title}'.")
                     return redirect('book_detail', book_id=book_id)
@@ -749,8 +768,7 @@ def clear_balance(request):
             return redirect('login')
 
         try:
-            # session_user = Users.objects.get(user_id=session_user_id)
-            user = Users.objects.raw("SELECT * FROM Users WHERE user_id = %s", [session_user_id])[0]
+            session_user = Users.objects.raw("SELECT * FROM Users WHERE user_id = %s", [session_user_id])[0]
         except Users.DoesNotExist:
             messages.error(request, "Invalid session. Please log in again.")
             return redirect('login')
