@@ -20,7 +20,13 @@
         </div>
         <div class="card-body">
             <p><strong>Username:</strong> {{ user.username }}</p>
-            <p><strong>Name:</strong> {{ user.first_name }} {{ user.last_name }}</p>
+            {% if user.first_name and user.last_name %}
+                <p><strong>Name:</strong> {{ user.first_name }} {{ user.last_name }}</p>
+            {% elif user.first_name and not user.last_name %}
+                <p><strong>Name:</strong> {{ user.first_name }}</p>
+            {% elif not user.first_name and user.last_name %}
+                <p><strong>Name:</strong> {{ user.last_name }}</p>
+            {% endif %}
             <p><strong>Role:</strong> {{ user.user_role }}</p>
         </div>
     </div>
