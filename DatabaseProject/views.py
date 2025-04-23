@@ -749,8 +749,7 @@ def clear_balance(request):
             return redirect('login')
 
         try:
-            # session_user = Users.objects.get(user_id=session_user_id)
-            user = Users.objects.raw("SELECT * FROM Users WHERE user_id = %s", [session_user_id])[0]
+            session_user = Users.objects.raw("SELECT * FROM Users WHERE user_id = %s", [session_user_id])[0]
         except Users.DoesNotExist:
             messages.error(request, "Invalid session. Please log in again.")
             return redirect('login')
