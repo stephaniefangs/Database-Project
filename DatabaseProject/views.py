@@ -745,10 +745,10 @@ def clear_balance(request):
                     """, [user_id_to_clear])
 
                     # Insert into Balance_History
-                    cursor.execute("""
-                        INSERT INTO Balance_History (user_id, amount, date_of_change)
-                        VALUES (%s, %s, %s)
-                    """, [user_id_to_clear, -current_balance, now()])
+                    # cursor.execute("""
+                    #     INSERT INTO Balance_History (user_id, amount, date_of_change)
+                    #     VALUES (%s, %s, %s)
+                    # """, [user_id_to_clear, -current_balance, now()])
 
                 messages.success(request, f"Outstanding balance for user '{username_to_clear}' has been cleared.")
             else:
@@ -782,10 +782,10 @@ def pay_balance(request):
                     """, [user_id])
 
                     # Insert into Balance_History
-                    cursor.execute("""
-                        INSERT INTO Balance_History (user_id, amount, date_of_change)
-                        VALUES (%s, %s, %s)
-                    """, [user_id, -current_balance, now()])
+                    # cursor.execute("""
+                    #     INSERT INTO Balance_History (user_id, amount, date_of_change)
+                    #     VALUES (%s, %s, %s)
+                    # """, [user_id, -current_balance, now()])
 
                 messages.success(request, "Your outstanding balance has been successfully paid.")
             else:
