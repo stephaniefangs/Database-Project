@@ -178,7 +178,8 @@ def add_book_view(request):
     if 'user_id' not in request.session:
         return redirect('login')  # Ensure user is logged in
 
-    user = Users.objects.get(user_id=request.session['user_id'])
+    # user = Users.objects.get(user_id=request.session['user_id'])
+    user = Users.objects.raw("SELECT * FROM Users WHERE user_id = %s", [request.session['user_id']])[0]
     
     # Check for admin privileges
     if user.user_role != 'admin':
@@ -243,7 +244,10 @@ def dashboard_view(request):
         return redirect('login')
 
     user_id = request.session['user_id']
-    user = Users.objects.get(user_id=user_id)
+    # user = Users.objects.get(user_id=user_id)
+    user = Users.objects.raw("SELECT * FROM Users WHERE user_id = %s", [user_id])[0]
+
+    
     
     # Check user role
     is_admin = user.user_role == 'admin'
@@ -360,7 +364,9 @@ def place_hold(request):
             return redirect('search_books')
 
         # Check if user is an admin
-        user = Users.objects.get(user_id=user_id)
+        # user = Users.objects.get(user_id=user_id)
+        user = Users.objects.raw("SELECT * FROM Users WHERE user_id = %s", [user_id])[0]
+
         if user.user_role == 'admin':
             messages.error(request, "Administrators cannot place holds on books.")
             return redirect('book_detail', book_id=book_id)
@@ -426,7 +432,9 @@ def book_detail_view(request, book_id):
         return redirect('login')
         
     user_id = request.session['user_id']
-    user = Users.objects.get(user_id=user_id)
+    # user = Users.objects.get(user_id=user_id)
+    user = Users.objects.raw("SELECT * FROM Users WHERE user_id = %s", [user_id])[0]
+
     
     try:
         # Get the book details
@@ -460,7 +468,8 @@ def reserve_book(request):
             return redirect('book_detail', book_id=book_id)
             
         # Check if user is an admin
-        user = Users.objects.get(user_id=user_id)
+        # user = Users.objects.get(user_id=user_id)
+        user = Users.objects.raw("SELECT * FROM Users WHERE user_id = %s", [user_id])[0]
         if user.user_role == 'admin':
             messages.error(request, "Administrators cannot reserve books.")
             return redirect('book_detail', book_id=book_id)
@@ -621,7 +630,8 @@ def admin_delete_hold(request):
             return redirect('login')
             
         # Check if user is an admin
-        user = Users.objects.get(user_id=user_id)
+        # user = Users.objects.get(user_id=user_id)
+        user = Users.objects.raw("SELECT * FROM Users WHERE user_id = %s", [user_id])[0]
         if user.user_role != 'admin':
             messages.error(request, "You don't have permission to perform this action.")
             return redirect('dashboard')
@@ -663,7 +673,8 @@ def admin_end_reservation(request):
             return redirect('login')
             
         # Check if user is an admin
-        user = Users.objects.get(user_id=user_id)
+        # user = Users.objects.get(user_id=user_id)
+        user = Users.objects.raw("SELECT * FROM Users WHERE user_id = %s", [user_id])[0]
         if user.user_role != 'admin':
             messages.error(request, "You don't have permission to perform this action.")
             return redirect('dashboard')
@@ -720,7 +731,8 @@ def clear_balance(request):
             return redirect('login')
 
         try:
-            session_user = Users.objects.get(user_id=session_user_id)
+            # session_user = Users.objects.get(user_id=session_user_id)
+            user = Users.objects.raw("SELECT * FROM Users WHERE user_id = %s", [session_user_id])[0]
         except Users.DoesNotExist:
             messages.error(request, "Invalid session. Please log in again.")
             return redirect('login')
@@ -731,7 +743,8 @@ def clear_balance(request):
 
         try:
             # Get the username and current balance of the user whose balance is being cleared
-            user_to_clear = Users.objects.get(user_id=user_id_to_clear)
+            # user_to_clear = Users.objects.get(user_id=user_id_to_clear)
+            user_to_clear = Users.objects.raw("SELECT * FROM Users WHERE user_id = %s", [user_id_to_clear])[0]
             username_to_clear = user_to_clear.username
             current_balance = user_to_clear.outstanding_balance
 
@@ -769,7 +782,8 @@ def pay_balance(request):
             return redirect('login')
 
         try:
-            user = Users.objects.get(user_id=user_id)
+            # user = Users.objects.get(user_id=user_id)
+            user = Users.objects.raw("SELECT * FROM Users WHERE user_id = %s", [user_id])[0]
             current_balance = user.outstanding_balance
 
             if current_balance > 0:
