@@ -367,7 +367,7 @@ def place_hold(request):
             return redirect('book_detail', book_id=book_id)
 
         if user.outstanding_balance > 0:
-            messages.error(request, "Cannot hold a book due to outstanding balance.")
+            messages.danger(request, "Cannot hold a book due to outstanding balance.")
             return redirect('book_detail', book_id=book_id)
 
         try:
