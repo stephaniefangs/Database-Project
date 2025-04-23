@@ -80,26 +80,26 @@
                 {% endif %}
             </div>
         </div>
-    </div>
 
-    <!-- Outstanding Balance Section -->
-    <div class="card mb-4">
-        <div class="card-header">
-            Outstanding Balance
-        </div>
-        <div class="card-body">
-            <p>
-                <strong>Balance:</strong> ${{ user.outstanding_balance }}
-            </p>
-            {% if user.outstanding_balance > 0 %}
-                <form method="POST" action="{% url 'pay_balance' %}">
-                    {% csrf_token %}
-                    <input type="hidden" name="user_id" value="{{ user.user_id }}">
-                    <button type="submit" class="btn btn-warning">Pay Balance</button>
-                </form>
-            {% else %}
-                <p class="text-success">No outstanding balance.</p>
-            {% endif %}
+        <!-- Outstanding Balance Section -->
+        <div class="card mb-4">
+            <div class="card-header">
+                Outstanding Balance
+            </div>
+            <div class="card-body">
+                <p>
+                    <strong>Balance:</strong> ${{ user.outstanding_balance }}
+                </p>
+                {% if user.outstanding_balance > 0 %}
+                    <form method="POST" action="{% url 'pay_balance' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="user_id" value="{{ user.user_id }}">
+                        <button type="submit" class="btn btn-warning">Pay Balance</button>
+                    </form>
+                {% else %}
+                    <p class="text-success">No outstanding balance.</p>
+                {% endif %}
+            </div>
         </div>
     </div>
 
