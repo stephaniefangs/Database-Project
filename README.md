@@ -47,4 +47,4 @@ Once this server is running, open your browser and go to http://127.0.0.1:8000/ 
 
 ## Extra
 
-Make sure you have Python installed. This project also uses Django.
+Make sure you have the latest version of Python installed (Python 3.10, 3.11, 3.12, and 3.13). This project also uses Django 5.2.
