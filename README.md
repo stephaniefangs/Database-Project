@@ -1,4 +1,4 @@
-# Database-Project
+# Library Management System
 
 ## Repository
 
