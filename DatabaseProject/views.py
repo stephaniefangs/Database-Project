@@ -136,18 +136,12 @@ def register_view(request):
             confirm_password = form.cleaned_data['confirm_password']
             first_name = form.cleaned_data['first_name']
             last_name = form.cleaned_data['last_name']
-            phone_number = form.cleaned_data['phone_number']
+            phone_number = form.cleaned_data['phone_number'].strip()
 
             # Phone number validation
             if phone_number:
-                if not re.match(r'^[0-9()\-\s]+$', phone_number):
-                    messages.error(request, 'Phone number must contain only digits, parentheses, hyphens, and spaces.')
-                    return render(request, 'register.html', {'form': form})
-                if '.' in phone_number:
-                    messages.error(request, 'Phone number cannot contain decimal points.')
-                    return render(request, 'register.html', {'form': form})
-                if phone_number.startswith('-'):
-                    messages.error(request, 'Phone number cannot start with a negative sign.')
+                if not re.match(r'^[0-9]{10}$', phone_number):
+                    messages.error(request, 'Phone number must contain exactly 10 digits, and no other characters.')
                     return render(request, 'register.html', {'form': form})
 
             # print("phone_number value:", len(phone_number), type(phone_number))
@@ -161,6 +155,11 @@ def register_view(request):
             # Check if username already exists
             if len(Users.objects.raw("SELECT * FROM Users WHERE username = %s", [username])) > 0:
                 messages.error(request, 'Username already exists')
+                return render(request, 'register.html', {'form': form})
+            
+            # Check if phone already exists
+            if len(Users.objects.raw("SELECT * FROM Users WHERE phone_number = %s", [phone_number])) > 0:
+                messages.error(request, 'Phone number already exists')
                 return render(request, 'register.html', {'form': form})
 
             # Create new user
@@ -177,7 +176,7 @@ def register_view(request):
 
             # Users.objects.raw("INSERT INTO Users(username, password, first_name, last_name, phone_number, user_role, outstanding_balance) VALUES (%s, %s, %s, %s, %s, 'registered', 0.00)", [username, password, first_name, last_name, phone_number])
             # Users.objects.raw("COMMIT")
-
+            
             with connection.cursor() as cursor:
                 cursor.execute("INSERT INTO Users(username, password, first_name, last_name, phone_number, user_role, outstanding_balance) VALUES (%s, %s, %s, %s, %s, 'registered', 0.00)", [username, password, first_name, last_name, phone_number])
 
